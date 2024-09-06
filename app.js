@@ -2,7 +2,7 @@ window.addEventListener('load', function() {
     //canvas setup
     const canvas = document.getElementById('canvas1');
     const ctx = canvas.getContext('2d');
-    canvas.width = 1600;
+    canvas.width = 1768;
     canvas.height = 500;
 
     class InputHandler {
@@ -61,13 +61,14 @@ window.addEventListener('load', function() {
     class Player {
         constructor(game) {
             this.game = game;
-            this.width = 120;
-            this.height = 190;
+            this.width = 118;
+            this.height = 80;
             this.x = 20;
             this.y = 100;
             this.speedY = 0;
             this.maxSpeed = 3;
             this.projectile = [];
+            this.image = document.getElementById('player');
         }
         update() {
             if(this.game.keys.includes('ArrowUp')) {
@@ -84,8 +85,7 @@ window.addEventListener('load', function() {
             this.projectile = this.projectile.filter(projectile => !projectile.markedForDeletion);
         }
         draw(context) {
-            context.fillStyle = "black";
-            context.fillRect(this.x, this.y, this.width, this.height);
+            context.drawImage(this.image, this.x, this.y);
             for(let i = 0; i < this.projectile.length; i++) {
                 this.projectile[i].draw(context);
             }
@@ -140,8 +140,8 @@ window.addEventListener('load', function() {
             this.game = game;
             this.image = image;
             this.speedModifier = speedModifier;
-            this.width = game.width;
-            this.height = game.height;
+            this.width = 1768;
+            this.height = 500;
             this.x = 0;
             this.y = 0;
         }    
@@ -152,7 +152,7 @@ window.addEventListener('load', function() {
             }
         }
         draw(context) {
-            context.drawImage(this.image, this.x, this.y, this.width, this.height);
+            context.drawImage(this.image, this.x, this.y);
             context.drawImage(this.image, this.x + this.width, this.y);
         }
     }
@@ -160,9 +160,17 @@ window.addEventListener('load', function() {
     class Background {
         constructor(game) {
             this.game = game;
-            this.image = document.getElementById('layer1');
-            this.layer = new Layer(this.game, this.image, 1);
-            this.layers = [this.layer];
+            this.image1 = document.getElementById('layer1');
+            this.image2 = document.getElementById('layer2');
+            this.image3 = document.getElementById('layer3');
+            this.image4 = document.getElementById('layer4');
+            
+            this.layer1 = new Layer(this.game, this.image1, 1);
+            this.layer2 = new Layer(this.game, this.image2, 1);
+            this.layer3 = new Layer(this.game, this.image3, 1);
+            this.layer4 = new Layer(this.game, this.image4, 1);
+
+            this.layers = [this.layer1, this.layer2, this.layer3, this.layer4];
         }
 
         update() {
