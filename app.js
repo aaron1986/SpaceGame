@@ -252,7 +252,7 @@ window.addEventListener('load', function() {
             this.score = 0;
             this.winningScore = 145;
             this.gameTime = 0;
-            this.gameLimit = 200000;
+            this.gameLimit = 100000;
             this.background = new Background(this);
             this.speed = 1;
             this.gameOver = false;
