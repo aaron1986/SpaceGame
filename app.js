@@ -125,9 +125,8 @@ window.addEventListener('load', function() {
         }
 
         draw(context) {
-            if(context.drawImage(this.image, this.x, this.y)) {
-                context.fillText(this.lives, this.x, this.y); 
-            }
+            context.drawImage(this.image, this.x, this.y) 
+            context.fillText(this.lives, this.x, this.y); 
             
         }
     
