@@ -69,24 +69,32 @@ window.addEventListener('load', function() {
             this.maxSpeed = 3;
             this.projectile = [];
             this.image = document.getElementById('player');
+            this.lives = 5; 
+            this.isDead = false;
         }
         update() {
-            if(this.game.keys.includes('ArrowUp')) {
-                this.speedY = -this.maxSpeed;
-            } else if(this.game.keys.includes('ArrowDown')) {
-                this.speedY = this.maxSpeed;
-            } else {
-                this.speedY = 0;
+            if (!this.isDead) {
+                if (this.game.keys.includes('ArrowUp')) {
+                    this.speedY = -this.maxSpeed;
+                } else if (this.game.keys.includes('ArrowDown')) {
+                    this.speedY = this.maxSpeed;
+                } else {
+                    this.speedY = 0;
+                }
+                this.y += this.speedY;
             }
-            this.y += this.speedY;
-            for(let i =0; i < this.projectile.length; i++) {
+        
+            for (let i = 0; i < this.projectile.length; i++) {
                 this.projectile[i].update();
             }
             this.projectile = this.projectile.filter(projectile => !projectile.markedForDeletion);
         }
+        
         draw(context) {
-            context.drawImage(this.image, this.x, this.y);
-            for(let i = 0; i < this.projectile.length; i++) {
+            if (!this.isDead) {
+                context.drawImage(this.image, this.x, this.y);
+            }
+            for (let i = 0; i < this.projectile.length; i++) {
                 this.projectile[i].draw(context);
             }
         }
@@ -197,26 +205,26 @@ window.addEventListener('load', function() {
 
         draw(context) {
             context.fillStyle = this.colour;
-            //score
             context.font = this.fontsize + 'px' + this.fontfamily;
+        
+            // Score
             context.fillText('Score: ' + this.game.score, 20, 40);
-            //Ammo
-            for(let i = 0; i < this.game.ammo; i++) {
-                context.fillRect(20 + 5 * i,50,3,20);
+        
+            // Ammo
+            for (let i = 0; i < this.game.ammo; i++) {
+                context.fillRect(20 + 5 * i, 50, 3, 20);
             }
-
-            //Timer
+        
+            // Timer
             const formattedTime = (this.game.gameTime * 0.001).toFixed(1);
             context.fillText("Timer: " + formattedTime, 20, 100);
-
-            //Game Over
-            if(this.game.gameOver) {
+        
+            // Game Over message
+            if (this.game.gameOver) {
                 context.textAlign = "center";
-                let message1;
-                if(this.game.score > this.game.winningScore) {
+                let message1 = "Game Over!";
+                if (this.game.score > this.game.winningScore) {
                     message1 = "You Win!";
-                } else {
-                    message1 = "You Lose!";
                 }
                 context.font = "50px " + this.fontfamily;
                 context.fillText(message1, this.game.width * 0.5, this.game.height * 0.5);
@@ -242,66 +250,104 @@ window.addEventListener('load', function() {
             this.enemyInterval = 1000;
             this.gameOver = false;
             this.score = 0;
-            this.winningScore = 45;
+            this.winningScore = 145;
             this.gameTime = 0;
-            this.gameLimit = 5000;
+            this.gameLimit = 400000;
             this.background = new Background(this);
             this.speed = 1;
+            this.gameOver = false;
         }
+
+        reset() {
+            this.player = new Player(this);
+            this.keys = [];
+            this.ammo = 20;
+            this.enemies = [];
+            this.enemyTimer = 0;
+            this.score = 0;
+            this.gameTime = 0;
+            this.gameOver = false;
+            this.player.isDead = false;
+        }
+
         update(deltaTime) {
-            if(!this.gameOver) {
+            if (!this.gameOver) {
                 this.gameTime += deltaTime;
-                if(this.gameTime > this.gameLimit) {
+                if (this.gameTime > this.gameLimit) {
                     this.gameOver = true;
                 }
-            }
-            this.background.update();
-            this.player.update();
-            this.ammoTimer += deltaTime;
-            if(this.ammoTimer > this.ammoInterval) {
-                if(this.ammo < this.maxAmmo) {
-                    this.ammo++;
-                    this.ammoTimer = 0;
-                } 
-            }
-            for(let i = 0; i < this.enemies.length; i++) {
-                this.enemies[i].update();
-                if(this.checkCollisions(this.player, this.enemies[i])) {
-                    this.enemies[i].markedForDeletion = true;
+        
+                this.background.update();
+                this.player.update();
+        
+                this.ammoTimer += deltaTime;
+                if (this.ammoTimer > this.ammoInterval) {
+                    if (this.ammo < this.maxAmmo) {
+                        this.ammo++;
+                        this.ammoTimer = 0;
+                    }
                 }
-                 for(let j = 0; j < this.player.projectile.length; j++) {
-                    const projectile = this.player.projectile[j];
-                    if (this.checkCollisions(projectile, this.enemies[i])) {
-                        this.enemies[i].lives--;
-                        projectile.markedForDeletion = true;
-                        if(this.enemies[i].lives <= 0) {
-                            this.enemies[i].markedForDeletion = true;
-                            if(!this.gameOver) {
-                                this.score += this.enemies[i].score
-                            }
-                            if(this.score > this.winningScore) {
-                                this.gameOver = true;
+        
+                for (let i = 0; i < this.enemies.length; i++) {
+                    this.enemies[i].update();
+                    if (this.checkCollisions(this.player, this.enemies[i])) {
+                        this.enemies[i].markedForDeletion = true;
+                        this.player.lives--;
+        
+                        if (this.player.lives <= 0) {
+                            this.player.isDead = true;
+                            this.gameOver = true;
+                        }
+                    }
+        
+                    for (let j = 0; j < this.player.projectile.length; j++) {
+                        const projectile = this.player.projectile[j];
+                        if (this.checkCollisions(projectile, this.enemies[i])) {
+                            this.enemies[i].lives--;
+                            projectile.markedForDeletion = true;
+        
+                            if (this.enemies[i].lives <= 0) {
+                                this.enemies[i].markedForDeletion = true;
+                                if (!this.gameOver) {
+                                    this.score += this.enemies[i].score;
+                                }
+                                if (this.score > this.winningScore) {
+                                    this.gameOver = true;
+                                }
                             }
                         }
                     }
-                } 
-            }
-
-            this.enemies = this.enemies.filter(enemy => !enemy.markedForDeletion);
-
-            this.enemyTimer += deltaTime;
-            if(this.enemyTimer > this.enemyInterval && !this.gameOver) {
-                this.addEnemy();
-                this.enemyTimer = 0;
+                }
+        
+                this.enemies = this.enemies.filter(enemy => !enemy.markedForDeletion);
+                this.enemyTimer += deltaTime;
+                if (this.enemyTimer > this.enemyInterval && !this.gameOver) {
+                    this.addEnemy();
+                    this.enemyTimer = 0;
+                } else {
+                    window.addEventListener('keydown', event => {
+                        if (event.key === 'y' || event.key === 'Y') {
+                            this.reset();
+                        } else if (event.key === 'n' || event.key === 'N') {
+                            console.log("Game over permanently.");
+                        }
+                    }, { once: true });
+                }
             }
         }
-
+        
         draw(context) {
             this.background.draw(context);
             this.player.draw(context);
             this.ui.draw(context);
             for(let i = 0; i < this.enemies.length; i++) {
                 this.enemies[i].draw(context);
+            }
+            if (this.gameOver) {
+                context.textAlign = "center";
+                context.font = "40px Helvetica";
+                context.fillStyle = "white";
+                context.fillText("Press 'Y' to play again or 'N' to quit", this.width * 0.5, this.height * 0.6);
             }
         }
         addEnemy() {
